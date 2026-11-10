@@ -61,6 +61,10 @@ class Inventory:
         if product.sku not in self.products:
             self.products[product.sku] = product
 
+    def add_products(self, products):
+        for p in products:
+            self.add_product(p) # Llamar a tu propio método
+
     def get_product(self, sku):
         return self.products.get(sku)
 
@@ -118,34 +122,35 @@ if __name__ == "__main__":
     inventory = Inventory()
 
     # Create products with categories and tags
-    p1 = Product("Laptop", "SKU123", 1200, 10, categories=[cat_electronics], tags=[tag_new_arrival, tag_best_seller])
+    p1 = Product("Laptop", "SKU123", 1200, 10, categories=[cat_electronics],
+                  tags=[tag_new_arrival, tag_best_seller])
     p2 = Product("Mouse", "SKU456", 25, 100, categories=[cat_electronics], tags=[tag_on_sale])
     p3 = Product("Keyboard", "SKU789", 50, 50, categories=[cat_office], tags=[tag_best_seller])
     p4 = Product("Monitor", "SKU101", 300, 20, categories=[cat_electronics], tags=[])
 
     # Add products to inventory
-    inventory.add_product(p1)
-    inventory.add_product(p2)
-    inventory.add_product(p3)
-    inventory.add_product(p4)
+    inventory.add_products([p1,p2,p3,p4])
 
+    orders = []
     # Create orders
     order1 = Order("ORDER001")
     order1.add_product(p1, 2)
     order1.add_product(p2, 5)
+    orders.append(order1)
 
     order2 = Order("ORDER002")
     order2.add_product(p3, 3)
     order2.add_product(p4, 1)
+    orders.append(order2)
 
     order3 = Order("ORDER003")
     order3.add_product(p2, 10)
     order3.add_product(p4, 2)
+    orders.append(order3)
 
-    # Process purchases
-    print(order1.buy())
-    print(order2.buy())
-    print(order3.buy())
+    # Process orders:
+    for my_order in orders:
+        print(my_order.buy())
 
     # Show final inventory report
     print("\nInventory Report:\n")

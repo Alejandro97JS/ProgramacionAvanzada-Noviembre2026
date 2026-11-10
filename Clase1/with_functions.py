@@ -107,3 +107,11 @@ orders = [
 
 process_orders(orders, inventory)
 show_inventory_report(inventory)
+
+orders = [
+    {"order_id": "ORDER001", "items": {"SKU123": 2, "SKU456": 5}},
+    {"order_id": "ORDER002", "items": {"SKU789": 3, "SKU101": 1}},
+    {"order_id": "ORDER003", "items": {"SKU456": 10, "SKU101": 2}},
+]
+
+process_orders(orders, inventory)
