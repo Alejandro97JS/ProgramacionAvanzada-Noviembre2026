@@ -95,7 +95,29 @@ class ChannelFactory:
         else:
             return EmailSender()
 
-username = "PEPE"
-channel_sender = ChannelFactory().create_channel(username)
-my_notificator = Notificator(channel_sender)
-my_notificator.notificate("Hola"*30)
+# username = "PEPE"
+# channel_sender = ChannelFactory().create_channel(username)
+# my_notificator = Notificator(channel_sender)
+# my_notificator.notificate("Hola"*30)
+
+
+# === PROGRAMACIÓN WEB ===
+
+import requests
+# response = requests.get("https://es.wikipedia.org/")
+# print(response.json())
+# FALLA PORQUE ESTÁ PENSADO PARA WEB (NAVEGADOR) Y SOMOS UN "BOT"
+
+# response = requests.get("https://catfact.ninja" + "/fact_asdfasdfas")
+# print(response.text)
+# print(response.ok)
+# print(response.status_code)
+
+num_frases = int(input("Introduce num frases gatos"))
+max_length = int(input("Introduce longitud máxima"))
+my_built_url = "https://catfact.ninja" + "/facts" + f"?max_length={max_length}&limit={num_frases}"
+print(my_built_url)
+my_response = requests.get(my_built_url)
+# print(my_response.text)
+for elem in my_response.json()["data"]:
+    print(f"--> {elem['fact']}")
