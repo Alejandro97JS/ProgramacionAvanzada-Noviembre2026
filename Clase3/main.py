@@ -1,5 +1,7 @@
 import logging
+from utils import mensaje_bienvenida
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from typing import Optional
 from pydantic import BaseModel, field_validator, model_validator
@@ -11,6 +13,12 @@ class User(BaseModel):
 
     @field_validator("username")
     def username_with_vowels(cls, value):
+        # encontrado = False
+        # for vowel in ["a", "e", "i", "o", "u"]:
+        #     if vowel in value:
+        #         encontrado=True
+        # if not encontrado:
+        #     raise ValueError("You need vowels in your username!")
         if not any(vowel in value for vowel in 
                    ["a", "e", "i", "o", "u"]):
             raise ValueError("You need vowels in your username!")
@@ -18,13 +26,13 @@ class User(BaseModel):
 
     @model_validator(mode="after")
     def long_username_if_age_ge_50(cls, instance):
-        if instance.age >= 50:
+        if instance.age is None or instance.age >= 50:
             if len(instance.username) < 20:
                 raise ValueError("You must provide a username longer than 20 chars")
         return instance
 
 logging.basicConfig(
-    level=logging.INFO,  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    level=logging.WARNING,  # DEBUG, INFO, WARNING, ERROR, CRITICAL
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
@@ -36,19 +44,29 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.get("/")
+def startup_completed():
+    return mensaje_bienvenida()
+
 @app.get("/hello")
 def initial_greeting():
+    logger.debug("Buenas!!")
     logger.info("Recibida petición al saludo genérico")
     return {"msg": "Hola mundo!!!"}
 
 @app.get("/hello/{name}")
 def custom_greeting(name:str):
-    logger.info(f"Recibida petición al saludo personalizado para {name}")
-    processed_name = name.capitalize()
-    logger.info(f"Nombre tras .capitalize(): {processed_name}")
-    if processed_name == "Pepe":
-        logger.warning("Pepe ha entrado a la web!!")
-    return {"msg": f"Hello, {processed_name}!!!"}
+    try:
+        int(name)
+        logger.warning("Alguien puso un número")
+        return HTMLResponse("Mal...", 400)
+    except:
+        logger.info(f"Recibida petición al saludo personalizado para {name}")
+        processed_name = name.capitalize()
+        logger.info(f"Nombre tras .capitalize(): {processed_name}")
+        if processed_name == "Pepe":
+            logger.warning("Pepe ha entrado a la web!!")
+        return {"msg": f"Hello, {processed_name}!!!"}
 
 @app.post("/users/")
 def create_user(user: User):
@@ -56,5 +74,5 @@ def create_user(user: User):
     ... # Registrarlo en DB...
     return {
         "msg": "Usuario registrado correctamente",
-        "usuario": user.username
+        "usuario": user
     }
