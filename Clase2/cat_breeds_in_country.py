@@ -1,3 +1,5 @@
+# Ejercicio de clase 2 - Grupo 3 (API cats)
+
 import requests
 
 BASE_URL = "https://catfact.ninja/"
