@@ -76,3 +76,96 @@ def create_user(user: User):
         "msg": "Usuario registrado correctamente",
         "usuario": user
     }
+
+# Front de registro: sirve un HTML con un formulario cuyo JavaScript
+# llama a la propia API (POST /users/ -> create_user)
+REGISTER_HTML = """
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de usuarios</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; display: flex; justify-content: center; padding: 40px 16px; }
+        .card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 100%; max-width: 380px; }
+        h1 { margin-top: 0; font-size: 1.4em; }
+        label { display: block; margin-top: 12px; font-weight: bold; }
+        input { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { margin-top: 20px; width: 100%; padding: 10px; background: #009688; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; }
+        button:hover { background: #00796b; }
+        #resultado { margin-top: 16px; padding: 10px; border-radius: 4px; display: none; white-space: pre-wrap; }
+        .ok { background: #e0f2f1; color: #00695c; }
+        .error { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Registro de usuarios</h1>
+        <form id="form-registro">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required minlength="3">
+
+            <label for="age">Edad (opcional)</label>
+            <input type="number" id="age" name="age" min="0">
+
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+
+            <button type="submit">Registrar</button>
+        </form>
+        <div id="resultado"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById("form-registro");
+        const resultado = document.getElementById("resultado");
+
+        function mostrar(texto, clase) {
+            resultado.textContent = texto;
+            resultado.className = clase;
+            resultado.style.display = "block";
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();  // Evita que el formulario recargue la página
+
+            const ageValue = document.getElementById("age").value;
+            const payload = {
+                username: document.getElementById("username").value,
+                email: document.getElementById("email").value,
+                age: ageValue === "" ? null : parseInt(ageValue, 10)
+            };
+
+            try {
+                // Llamada a la propia API: endpoint create_user
+                const response = await fetch("/users/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    mostrar(data.msg + "\\n" + JSON.stringify(data.usuario, null, 2), "ok");
+                    form.reset();
+                } else if (response.status === 422) {
+                    // Errores de validación de Pydantic
+                    const errores = data.detail.map(e => "• " + e.msg).join("\\n");
+                    mostrar("Errores de validación:\\n" + errores, "error");
+                } else {
+                    mostrar("Error " + response.status + ": " + JSON.stringify(data), "error");
+                }
+            } catch (err) {
+                mostrar("No se pudo contactar con la API: " + err, "error");
+            }
+        });
+    </script>
+</body>
+</html>
+"""
+
+@app.get("/register", response_class=HTMLResponse)
+def register_form():
+    logger.info("Sirviendo formulario de registro")
+    return REGISTER_HTML
