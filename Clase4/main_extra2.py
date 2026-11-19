@@ -321,7 +321,8 @@ async def get_user_orders(user_id: int):
         db.close()
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    orders = db.query(OrderDB).filter(OrderDB.user_id == user_id).all()
+    # orders = db.query(OrderDB).filter(OrderDB.user_id == user_id).all()
+    orders = user.orders
     db.close()
     return {
         "user": user.username,
