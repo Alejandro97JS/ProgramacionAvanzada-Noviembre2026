@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import Column, Integer, String, Boolean, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -32,6 +32,7 @@ class UserDB(Base):
     username = Column(String, index=True)
     email = Column(String, unique=True, index=True)
     age = Column(Integer, nullable=True)
+    premium = Column(Boolean, nullable=True)
 
 Base.metadata.create_all(bind=engine)
 
@@ -183,6 +184,7 @@ def not_found_handler(request: Request, exc: HTTPException):
 
 @app.get("/hello")
 def initial_greeting():
+    1/0
     logger.info("Recibida petición al saludo genérico")
     return {"msg": "Hola mundo!!!"}
 
@@ -212,7 +214,8 @@ def create_user(user: User, background_tasks: BackgroundTasks):
         db.close()
         raise HTTPException(status_code=400, detail="El email ya está registrado")
 
-    user_db = UserDB(username=user.username, email=user.email, age=user.age)
+    user_db = UserDB(username=user.username, email=user.email, 
+                     age=user.age, premium=user.username == "Alejandro")
     db.add(user_db)
     db.commit()
     db.refresh(user_db)
@@ -222,10 +225,5 @@ def create_user(user: User, background_tasks: BackgroundTasks):
     background_tasks.add_task(enviar_email_bienvenida, user.email)
     return {
         "msg": "Usuario registrado correctamente",
-        "usuario": {
-            "id": user_db.id,
-            "username": user_db.username,
-            "email": user_db.email,
-            "age": user_db.age
-        }
+        "usuario": user_db
     }
