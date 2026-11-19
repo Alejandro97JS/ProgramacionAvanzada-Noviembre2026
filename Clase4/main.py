@@ -206,7 +206,9 @@ def create_user(user: User, background_tasks: BackgroundTasks):
     
     db = SessionLocal()
     existing = db.query(UserDB).filter(UserDB.email == user.email).first()
-    if existing:
+    # Chequea si existe el usuario.
+    # SELECT * FROM users WHERE email= <<valor del email>> LIMIT 1;
+    if existing is not None:
         db.close()
         raise HTTPException(status_code=400, detail="El email ya está registrado")
 
